@@ -1,101 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardEvent,
-  FlatList, ActivityIndicator
-} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import firebase from './src/firebaseConnection'
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-community/async-storage';
+
+import Login from './src/pages/Login'
+import Home from './src/pages/Home'
 
 
-// import { Container } from './styles';
+const Tab = createBottomTabNavigator()
 
 const App = () => {
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [user, setUser] = useState('')
+  const [logado, setLogado] = useState(false)
 
-  async function CadastraUsuario() {
+  async function checkLogin() {
+    const check = await AsyncStorage.getItem('logado')
 
-    await firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then((value) => {
-        alert('Usuario criado: ' + value.user.email)
-      })
-      .catch((error) => {
-        if (error.code === 'auth/weak-password') {
-          alert('Sua senha deve conter pelo menos 6 caracteres !')
-          return
-
-        }
-        if (error.code === 'auth/invalid-email') {
-          alert('Email inválido !')
-          return
-
-        } else {
-          alert('Algo deu errado')
-        }
-      })
-
-    setEmail('')
-    setPassword('')
+   
+    if (check === 'true') {      
+      setLogado(true)
+    } else {
+      setLogado(false)
+    }
   }
 
-  async function Logar() {
-    await firebase.auth().signInWithEmailAndPassword(email, password)
-      .then((value) => {
-        alert('Logado: ' + value.user.email)
-        setUser('Usuário logado: ' + value.user.email)
-      })
-      .catch((error) => {
+  useEffect(() => {
+    checkLogin()
+  }, [logado])
 
-        alert('Algo deu errado')
-        setUser('')
-
-      })
-
-    setEmail('')
-    setPassword('')
-  }
-
-  async function Deslogar() {
-    await firebase.auth().signOut()
-    setUser('')
-  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.texto}>Email</Text>
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={(e) => setEmail(e)}
-        underlineColorAndroid='transparent'
-      />
-      <Text style={styles.texto}>Senha</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={(e) => setPassword(e)}
-        underlineColorAndroid='transparent'
-      />
+    <NavigationContainer>
+      <Tab.Navigator>
 
-      <TouchableOpacity onPress={() => CadastraUsuario()} activeOpacity={0.5} style={styles.btn}>
-        <Text style={styles.textBtn}> Cadastrar </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Logar()} activeOpacity={0.5} style={styles.btn}>
-        <Text style={styles.textBtn}> Logar </Text>
-      </TouchableOpacity>
+        {logado ?
+          (
 
-      {user.length > 0 ?
 
-        ( <TouchableOpacity onPress={() => Deslogar()} activeOpacity={0.5} style={styles.btn}>
-          <Text style={styles.textBtn}> Deslogar </Text>
-        </TouchableOpacity> )
-        :
-        ( <Text>Nenhum Usuario logado</Text> )
-      }
-      <Text>  {user} </Text>
+            <Tab.Screen name='Home' component={Home} />
 
-    </View>
+
+          )
+          : (
+            <Tab.Screen name='Login' component={Login} />
+
+          )
+
+        }
+
+
+      </Tab.Navigator>
+
+
+    </NavigationContainer>
   );
 }
 
