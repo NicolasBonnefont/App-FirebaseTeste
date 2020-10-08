@@ -4,124 +4,106 @@ import {
   FlatList, ActivityIndicator
 } from 'react-native';
 import firebase from './src/firebaseConnection'
-import Listagem from './src/components/ListaUsuario'
+
 
 // import { Container } from './styles';
 
 const App = () => {
 
-  const [nome, setNome] = useState('')
-  const [cargo, setCargo] = useState('')
-  const [usuarios, setUsuarios] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-
-
-    async function Dados() {
-
-      await firebase.database().ref('Usuarios').on('value', (snap) => {
-        setUsuarios([])
-        snap.forEach((item) => {
-          let data = {
-            key: item.key,
-            nome: item.val().nome,
-            cargo: item.val().cargo
-          }
-          setUsuarios(old => [...old, data].reverse())
-        })
-        setLoading(false)
-      })
-
-    }
-
-
-
-
-    /*     async function Dados() {                    //sempre atualiza 
-          await firebase.database().ref('usuarios/1').on('value', (snapshot) => {
-            setNome(snapshot.val().nome)
-            setIdade(snapshot.val().idade)
-          })
-        } */
-
-    /*     async function Dados() {            //apenas uma vez
-          await firebase.database().ref('nome').once('value', (e) => {
-            setNome(e.val())
-          })
-    
-        } */
-
-
-    Dados()
-
-  }, [])
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [user, setUser] = useState('')
 
   async function CadastraUsuario() {
 
-    if (nome != '' && cargo != '') {
-
-      let usuarios = await firebase.database().ref('Usuarios')
-      let key = usuarios.push().key
-
-      usuarios.child(key).set({
-        nome,
-        cargo
+    await firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then((value) => {
+        alert('Usuario criado: ' + value.user.email)
       })
-      setCargo('')
-      setNome('')
+      .catch((error) => {
+        if (error.code === 'auth/weak-password') {
+          alert('Sua senha deve conter pelo menos 6 caracteres !')
+          return
 
-    }
+        }
+        if (error.code === 'auth/invalid-email') {
+          alert('Email inválido !')
+          return
 
+        } else {
+          alert('Algo deu errado')
+        }
+      })
+
+    setEmail('')
+    setPassword('')
+  }
+
+  async function Logar() {
+    await firebase.auth().signInWithEmailAndPassword(email, password)
+      .then((value) => {
+        alert('Logado: ' + value.user.email)
+        setUser('Usuário logado: ' + value.user.email)
+      })
+      .catch((error) => {
+
+        alert('Algo deu errado')
+        setUser('')
+
+      })
+
+    setEmail('')
+    setPassword('')
+  }
+
+  async function Deslogar() {
+    await firebase.auth().signOut()
+    setUser('')
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.texto}>Nome</Text>
+      <Text style={styles.texto}>Email</Text>
       <TextInput
         style={styles.input}
-        value={nome}
-        onChangeText={(e) => setNome(e)}
+        value={email}
+        onChangeText={(e) => setEmail(e)}
         underlineColorAndroid='transparent'
-        keyboardType=''
       />
-      <Text style={styles.texto}>Cargo</Text>
+      <Text style={styles.texto}>Senha</Text>
       <TextInput
         style={styles.input}
-        value={cargo}
-        onChangeText={(e) => setCargo(e)}
+        value={password}
+        onChangeText={(e) => setPassword(e)}
         underlineColorAndroid='transparent'
       />
 
       <TouchableOpacity onPress={() => CadastraUsuario()} activeOpacity={0.5} style={styles.btn}>
         <Text style={styles.textBtn}> Cadastrar </Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => Logar()} activeOpacity={0.5} style={styles.btn}>
+        <Text style={styles.textBtn}> Logar </Text>
+      </TouchableOpacity>
 
-      {loading ? (
-        <ActivityIndicator style={{marginTop:50}} color='#121212' size={45} />
-      ) :
-        (
-          <FlatList
-            style={styles.lista}
-            data={usuarios}
-            keyExtractor={item => item.key}
-            renderItem={(item) => <Listagem data={item} />}
-          />
-        )
+      {user.length > 0 ?
+
+        ( <TouchableOpacity onPress={() => Deslogar()} activeOpacity={0.5} style={styles.btn}>
+          <Text style={styles.textBtn}> Deslogar </Text>
+        </TouchableOpacity> )
+        :
+        ( <Text>Nenhum Usuario logado</Text> )
       }
-
+      <Text>  {user} </Text>
 
     </View>
   );
 }
 
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     margin: 20,
-    marginTop: 40,
+    marginTop: 50,
     justifyContent: 'center',
 
   },
@@ -136,14 +118,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000',
     height: 40,
-    borderRadius: 5
+    borderRadius: 5,
+
   },
   btn: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'blue',
     height: 58,
-    borderRadius: 5
+    borderRadius: 5,
+    marginTop: 15
   },
   textBtn: {
     fontWeight: 'bold',
