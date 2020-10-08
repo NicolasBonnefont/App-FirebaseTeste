@@ -4,10 +4,12 @@ import {
   FlatList, ActivityIndicator
 } from 'react-native';
 
+import firebase from '../../firebaseConnection'
 // import { Container } from './styles';
 
 const CadastraUsuario = () => {
 
+  const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState('')
@@ -16,7 +18,10 @@ const CadastraUsuario = () => {
 
     await firebase.auth().createUserWithEmailAndPassword(email, password)
       .then((value) => {
-        alert('Usuario criado: ' + value.user.email)
+        firebase.database().ref('Usuarios').child(value.user.uid).set({
+          nome,
+          email
+        })
       })
       .catch((error) => {
         if (error.code === 'auth/weak-password') {
@@ -35,11 +40,19 @@ const CadastraUsuario = () => {
 
     setEmail('')
     setPassword('')
+    setNome('')
   }
 
 
   return (
     <View style={styles.container}>
+      <Text style={styles.texto}>Nome</Text>
+      <TextInput
+        style={styles.input}
+        value={nome}
+        onChangeText={(e) => setNome(e)}
+        underlineColorAndroid='transparent'
+      />
       <Text style={styles.texto}>Email</Text>
       <TextInput
         style={styles.input}

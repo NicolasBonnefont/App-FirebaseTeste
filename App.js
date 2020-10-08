@@ -3,13 +3,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import firebase from './src/firebaseConnection'
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+
 import AsyncStorage from '@react-native-community/async-storage';
 
 import Login from './src/pages/Login'
 import Home from './src/pages/Home'
+import CadastroUsuario from './src/pages/CadastroUsuario'
 
 
 const Tab = createBottomTabNavigator()
+const Stack = createStackNavigator()
 
 const App = () => {
 
@@ -18,8 +22,8 @@ const App = () => {
   async function checkLogin() {
     const check = await AsyncStorage.getItem('logado')
 
-   
-    if (check === 'true') {      
+
+    if (check === 'true') {
       setLogado(true)
     } else {
       setLogado(false)
@@ -32,29 +36,24 @@ const App = () => {
 
 
   return (
+
     <NavigationContainer>
       <Tab.Navigator>
-
         {logado ?
           (
-
-
             <Tab.Screen name='Home' component={Home} />
-
-
           )
           : (
-            <Tab.Screen name='Login' component={Login} />
-
+            <>
+              <Stack.Screen options={{ tabBarVisible: false }} name='Login' component={Login} />
+              <Stack.Screen name='CadastroUsuario' component={CadastroUsuario} />
+            </>
           )
 
         }
-
-
       </Tab.Navigator>
+    </NavigationContainer >
 
-
-    </NavigationContainer>
   );
 }
 

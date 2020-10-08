@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardEvent,
-  FlatList, ActivityIndicator
+  FlatList, ActivityIndicator, Image
 } from 'react-native';
 import firebase from '../../firebaseConnection'
 import AsyncStorage from '@react-native-community/async-storage';
+import homer from '../../images/homer.jpg'
 
 
 const Login = ({navigation}) => {
@@ -13,11 +14,11 @@ const Login = ({navigation}) => {
   const [password, setPassword] = useState('')
 
   async function Logar() {
-    let user = false
+    let user = 'false'
 
     await firebase.auth().signInWithEmailAndPassword(email, password)
       .then((value) => {
-        user = true
+        user = 'true'
        
       })
       .catch((error) => {
@@ -29,9 +30,7 @@ const Login = ({navigation}) => {
     setEmail('')
     setPassword('')
 
-    alert(user)
-
-    if (user) {
+    if (user === 'true') {
       await AsyncStorage.setItem('logado', user)
       navigation.navigate('Home')
     }
@@ -40,6 +39,17 @@ const Login = ({navigation}) => {
 
   return (
     <View style={styles.container}>
+
+    <View style={styles.img}>
+
+    <Image 
+      resizeMode='contain'
+      source={homer}
+      style={{width:'50%',height:'50%' }}
+      />
+
+    </View>
+
       <Text style={styles.texto}>Email</Text>
       <TextInput
         style={styles.input}
@@ -59,6 +69,10 @@ const Login = ({navigation}) => {
         <Text style={styles.textBtn}> Logar </Text>
       </TouchableOpacity>
 
+      <TouchableOpacity onPress={() => navigation.navigate('CadastroUsuario')} activeOpacity={0.5} style={styles.btn}>
+        <Text style={styles.textBtn}> Novo Acesso </Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
@@ -66,10 +80,9 @@ const Login = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 20,
-    marginTop: 50,
     justifyContent: 'center',
-
+    backgroundColor:'#fff',
+    padding:10
   },
   texto: {
     fontSize: 20,
@@ -78,7 +91,7 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     marginBottom: 10,
-    padding: 10,
+    padding: 10,    
     borderWidth: 1,
     borderColor: '#000',
     height: 40,
@@ -99,6 +112,10 @@ const styles = StyleSheet.create({
   },
   lista: {
     marginTop: 25
+  },
+  img:{
+    justifyContent:'center',
+    alignItems:'center'
   }
 })
 
